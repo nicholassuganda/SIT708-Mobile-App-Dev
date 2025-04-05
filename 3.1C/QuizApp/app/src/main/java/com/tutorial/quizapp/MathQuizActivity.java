@@ -87,6 +87,7 @@ public class MathQuizActivity extends AppCompatActivity {
             option1RadioButton.setEnabled(false);
             option2RadioButton.setEnabled(false);
             option3RadioButton.setEnabled(false);
+            submitButton.setEnabled(false);
 
 
 
@@ -108,10 +109,11 @@ public class MathQuizActivity extends AppCompatActivity {
                     option1RadioButton.setEnabled(true);
                     option2RadioButton.setEnabled(true);
                     option3RadioButton.setEnabled(true);
+                    submitButton.setEnabled(true);
                 } else {
                     showResult();
                 }
-            }, 2000); // 2 second delay to see the feedback
+            }, 1000); // 1 second delay to see the feedback
         });
     }
 
