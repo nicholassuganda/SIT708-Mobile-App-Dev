@@ -38,15 +38,47 @@ public class MainActivity extends AppCompatActivity {
         Result = findViewById(R.id.Result);
 
         addButton.setOnClickListener(v -> {
-            Double n1 = Double.parseDouble(FirstNumber.getText().toString());
-            Double n2 = Double.parseDouble(SecondNumber.getText().toString());
-            Result.setText("Result: " + (n1 + n2));
+            String input1 = FirstNumber.getText().toString();
+            String input2 = SecondNumber.getText().toString();
+
+            if (input1.isEmpty() || input2.isEmpty()) {
+                Toast.makeText(this, "Please enter both numbers", Toast.LENGTH_SHORT).show();
+                return;
+            } else if (input1.isEmpty()) {
+                Toast.makeText(this, "Please enter both numbers", Toast.LENGTH_SHORT).show();
+                return;
+            } else if (input2.isEmpty()) {
+                Toast.makeText(this, "Please enter both numbers", Toast.LENGTH_SHORT).show();
+                return;
+            } else {
+                Double n1 = Double.parseDouble(FirstNumber.getText().toString());
+                Double n2 = Double.parseDouble(SecondNumber.getText().toString());
+
+                Result.setText("Result: " + (n1 + n2));
+            }
+
+
         });
 
         subtractButton.setOnClickListener(v -> {
-            Double n1 = Double.parseDouble(FirstNumber.getText().toString());
-            Double n2 = Double.parseDouble(SecondNumber.getText().toString());
-            Result.setText("Result: " + (n1 - n2));
+            String input1 = FirstNumber.getText().toString();
+            String input2 = SecondNumber.getText().toString();
+
+            if (input1.isEmpty() || input2.isEmpty()) {
+                Toast.makeText(this, "Please enter both numbers", Toast.LENGTH_SHORT).show();
+                return;
+            } else if (input1.isEmpty()) {
+                Toast.makeText(this, "Please enter both numbers", Toast.LENGTH_SHORT).show();
+                return;
+            } else if (input2.isEmpty()) {
+                Toast.makeText(this, "Please enter both numbers", Toast.LENGTH_SHORT).show();
+                return;
+            } else {
+                Double n1 = Double.parseDouble(FirstNumber.getText().toString());
+                Double n2 = Double.parseDouble(SecondNumber.getText().toString());
+
+                Result.setText("Result: " + (n1 - n2));
+            }
         });
     }
 }
