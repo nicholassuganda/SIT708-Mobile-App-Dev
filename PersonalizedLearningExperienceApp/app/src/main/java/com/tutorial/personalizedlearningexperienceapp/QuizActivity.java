@@ -1,159 +1,198 @@
 package com.tutorial.personalizedlearningexperienceapp;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
+import android.widget.TextView;
+import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
-public class LearningActivity extends AppCompatActivity {
+import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.Request;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 
-    private TextView questionTextView;
-    private RadioGroup optionsRadioGroup;
-    private Button submitButton, continueButton;
-    private ProgressBar loadingProgressBar;
-    private LinearLayout quizContainer, resultsContainer;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+public class QuizActivity extends AppCompatActivity {
+
+    private static final String TAG = "QuizActivity";
+    private TextView quizTitleTextView;
+    private LinearLayout quizContainer, loadingContainer;
+    private Button submitButton;
     private List<Question> questions = new ArrayList<>();
-    private int currentQuestionIndex = 0;
-    private int score = 0;
+    private String topic;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_learning);
+        setContentView(R.layout.activity_quiz);
 
-        // Initialize UI components
-        questionTextView = findViewById(R.id.questionTextView);
-        optionsRadioGroup = findViewById(R.id.optionsRadioGroup);
-        submitButton = findViewById(R.id.submitButton);
-        continueButton = findViewById(R.id.continueButton);
-        loadingProgressBar = findViewById(R.id.loadingProgressBar);
+        topic = getIntent().getStringExtra("topic");
+        loadingContainer = findViewById(R.id.loadingContainer);
+        quizTitleTextView = findViewById(R.id.quizTitleTextView);
         quizContainer = findViewById(R.id.quizContainer);
-        resultsContainer = findViewById(R.id.resultsContainer);
+        submitButton = findViewById(R.id.submitButton);
 
-        // Initially hide results container
-        resultsContainer.setVisibility(View.GONE);
-
-        // Load quiz questions
-        loadQuizQuestions();
-
-        submitButton.setOnClickListener(v -> checkAnswer());
-        continueButton.setOnClickListener(v -> showNextQuestion());
+        quizTitleTextView.setText(topic + " Quiz");
+        fetchQuizQuestions();
     }
 
-    private void loadQuizQuestions() {
-        loadingProgressBar.setVisibility(View.VISIBLE);
-        quizContainer.setVisibility(View.GONE);
+    private void fetchQuizQuestions() {
+        loadingContainer.setVisibility(View.VISIBLE); // Show loading
+        submitButton.setVisibility(View.INVISIBLE);
 
-        // URL for getting quiz questions based on user interests
-        String url = "http://10.0.2.2:5000/getPersonalizedQuiz";
+        String url = "http://10.0.2.2:5000/getQuiz?topic=" + URLEncoder.encode(topic);
+        Log.d(TAG, "Request URL: " + url);
 
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
                 Request.Method.GET, url, null,
                 response -> {
-                    loadingProgressBar.setVisibility(View.GONE);
-                    quizContainer.setVisibility(View.VISIBLE);
-
+                    loadingContainer.setVisibility(View.GONE); // Hide loading
+                    submitButton.setVisibility(View.VISIBLE);
                     try {
-                        JSONArray quizArray = response.getJSONArray("quiz");
-                        for (int i = 0; i < quizArray.length(); i++) {
-                            JSONObject questionObj = quizArray.getJSONObject(i);
-                            Question question = new Question(
-                                    questionObj.getString("question"),
-                                    questionObj.getJSONArray("options"),
-                                    questionObj.getString("correct_answer")
-                            );
-                            questions.add(question);
+                        Log.d(TAG, "Raw API Response: " + response.toString());
+
+                        if (!response.has("quiz")) {
+                            throw new JSONException("Response missing 'quiz' field");
                         }
 
-                        if (!questions.isEmpty()) {
-                            displayQuestion(questions.get(0));
+                        JSONArray quizArray = response.getJSONArray("quiz");
+                        if (quizArray.length() == 0) {
+                            throw new JSONException("Quiz array is empty");
                         }
+
+                        questions.clear();
+
+                        for (int i = 0; i < quizArray.length(); i++) {
+                            JSONObject quizQuestion = quizArray.getJSONObject(i);
+
+                            // Validate all required fields exist
+                            if (!quizQuestion.has("question") ||
+                                    !quizQuestion.has("options") ||
+                                    !quizQuestion.has("correct_answer")) {
+                                throw new JSONException("Question missing required fields");
+                            }
+
+                            String questionText = quizQuestion.getString("question");
+                            String correctAnswer = quizQuestion.getString("correct_answer");
+                            JSONArray optionsArray = quizQuestion.getJSONArray("options");
+
+                            // Validate options array
+                            if (optionsArray.length() < 2) {
+                                throw new JSONException("Question must have at least 2 options");
+                            }
+
+                            List<String> options = new ArrayList<>();
+                            for (int j = 0; j < optionsArray.length(); j++) {
+                                options.add(optionsArray.getString(j));
+                            }
+
+                            questions.add(new Question(questionText, options, correctAnswer));
+                        }
+
+                        displayQuestions();
                     } catch (JSONException e) {
-                        e.printStackTrace();
-                        Toast.makeText(this, "Error parsing quiz questions", Toast.LENGTH_SHORT).show();
+                        Log.e(TAG, "JSON Parsing Error", e);
+                        Toast.makeText(this, "Error: Invalid quiz format", Toast.LENGTH_LONG).show();
+                        setupSampleQuestions();
+                    } catch (Exception e) {
+                        Log.e(TAG, "Unexpected Error", e);
+                        Toast.makeText(this, "Error loading quiz", Toast.LENGTH_LONG).show();
+                        setupSampleQuestions();
                     }
                 },
                 error -> {
-                    loadingProgressBar.setVisibility(View.GONE);
-                    Toast.makeText(this, "Failed to load quiz: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                    loadingContainer.setVisibility(View.GONE); // Hide loading
+                    submitButton.setVisibility(View.VISIBLE);
+                    Toast.makeText(this, error.getMessage(), Toast.LENGTH_LONG).show();
+                    setupSampleQuestions();
                 });
 
-        // Add request to queue
-        RequestQueue queue = Volley.newRequestQueue(this);
-        queue.add(jsonObjectRequest);
+        jsonObjectRequest.setRetryPolicy(new DefaultRetryPolicy(
+                15000, // 15 seconds timeout
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+
+        Volley.newRequestQueue(this).add(jsonObjectRequest);
     }
 
-    private void displayQuestion(Question question) {
-        questionTextView.setText((currentQuestionIndex + 1) + ". " + question.getQuestionText());
-
-        optionsRadioGroup.removeAllViews();
-        optionsRadioGroup.clearCheck();
-
-        List<String> options = question.getOptions();
-        for (int i = 0; i < options.size(); i++) {
-            RadioButton radioButton = new RadioButton(this);
-            radioButton.setText(options.get(i));
-            radioButton.setId(i);
-            optionsRadioGroup.addView(radioButton);
-        }
+    private void setupSampleQuestions() {
+        questions.clear();
+        questions.add(new Question(
+                "Sample question about " + topic,
+                Arrays.asList("Option A", "Option B", "Option C", "Option D"),
+                "B"
+        ));
+        displayQuestions();
     }
 
-    private void checkAnswer() {
-        int selectedId = optionsRadioGroup.getCheckedRadioButtonId();
-        if (selectedId == -1) {
-            Toast.makeText(this, "Please select an answer", Toast.LENGTH_SHORT).show();
-            return;
-        }
+    private void displayQuestions() {
+        quizContainer.removeAllViews();
 
-        RadioButton selectedRadioButton = findViewById(selectedId);
-        String selectedAnswer = selectedRadioButton.getText().toString();
+        for (int i = 0; i < questions.size(); i++) {
+            Question question = questions.get(i);
 
-        Question currentQuestion = questions.get(currentQuestionIndex);
-        if (currentQuestion.getCorrectAnswer().equals(selectedAnswer)) {
-            score++;
-            Toast.makeText(this, "Correct!", Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(this, "Incorrect. The correct answer is: " + currentQuestion.getCorrectAnswer(), Toast.LENGTH_SHORT).show();
-        }
+            View questionView = getLayoutInflater().inflate(R.layout.item_question, quizContainer, false);
+            TextView questionText = questionView.findViewById(R.id.questionText);
+            RadioGroup optionsGroup = questionView.findViewById(R.id.optionsGroup);
 
-        // Disable further selection
-        for (int i = 0; i < optionsRadioGroup.getChildCount(); i++) {
-            optionsRadioGroup.getChildAt(i).setEnabled(false);
-        }
+            questionText.setText((i + 1) + ". " + question.getQuestionText());
 
-        submitButton.setEnabled(false);
-        continueButton.setVisibility(View.VISIBLE);
-    }
-
-    private void showNextQuestion() {
-        currentQuestionIndex++;
-        if (currentQuestionIndex < questions.size()) {
-            // Show next question
-            continueButton.setVisibility(View.GONE);
-            submitButton.setEnabled(true);
-            displayQuestion(questions.get(currentQuestionIndex));
-
-            // Re-enable options
-            for (int i = 0; i < optionsRadioGroup.getChildCount(); i++) {
-                optionsRadioGroup.getChildAt(i).setEnabled(true);
+            for (int j = 0; j < question.getOptions().size(); j++) {
+                RadioButton radioButton = new RadioButton(this);
+                radioButton.setText(question.getOptions().get(j));
+                radioButton.setId(View.generateViewId());
+                optionsGroup.addView(radioButton);
             }
-        } else {
-            // Quiz completed, show results
-            showResults();
+
+            quizContainer.addView(questionView);
         }
+
+        submitButton.setOnClickListener(v -> {
+            int score = calculateScore();
+            showResults(score);
+        });
     }
 
-    private void showResults() {
-        quizContainer.setVisibility(View.GONE);
-        resultsContainer.setVisibility(View.VISIBLE);
+    private int calculateScore() {
+        int score = 0;
+        for (int i = 0; i < quizContainer.getChildCount(); i++) {
+            View questionView = quizContainer.getChildAt(i);
+            RadioGroup optionsGroup = questionView.findViewById(R.id.optionsGroup);
+            int selectedId = optionsGroup.getCheckedRadioButtonId();
 
-        TextView resultsTextView = findViewById(R.id.resultsTextView);
-        resultsTextView.setText("You scored " + score + " out of " + questions.size());
+            if (selectedId != -1) {
+                RadioButton selectedRadioButton = questionView.findViewById(selectedId);
+                int selectedIndex = optionsGroup.indexOfChild(selectedRadioButton);
+                String selectedAnswer = String.valueOf((char) ('A' + selectedIndex));
 
-        // You could add more detailed results here showing each question and correct answer
+                if (selectedAnswer.equalsIgnoreCase(questions.get(i).getCorrectAnswer())) {
+                    score++;
+                }
+            }
+        }
+        return score;
+    }
+
+    private void showResults(int score) {
+        Intent intent = new Intent(this, ResultsActivity.class);
+        intent.putExtra("score", score);
+        intent.putExtra("total", questions.size());
+        intent.putExtra("topic", topic);
+        startActivity(intent);
     }
 }

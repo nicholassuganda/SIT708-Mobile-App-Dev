@@ -1,31 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="24dp"
+    android:background="@color/white">
 
     <TextView
+        android:id="@+id/resultsTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Your Results"
-        android:textSize="20sp"
+        android:textSize="24sp"
         android:textStyle="bold"
-        android:layout_marginBottom="16dp"/>
+        android:textColor="@color/black"
+        android:layout_marginBottom="16dp"
+        tools:text="Quiz Results"/>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/resultsRecyclerView"
+    <TextView
+        android:id="@+id/scoreTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="20sp"
+        android:textColor="@color/purple_500"
+        android:layout_marginBottom="24dp"
+        tools:text="You scored 3 out of 5"/>
+
+    <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"/>
+        android:layout_weight="1"
+        app:cardCornerRadius="8dp"
+        app:cardElevation="4dp"
+        android:layout_marginBottom="16dp">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/resultsRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="8dp"/>
+    </androidx.cardview.widget.CardView>
 
     <Button
         android:id="@+id/continueButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Continue"
-        android:layout_marginTop="16dp"
+        android:text="Continue Learning"
+        android:textColor="@color/white"
         android:backgroundTint="@color/purple_500"
-        android:textColor="@color/white"/>
+        android:layout_marginTop="8dp"/>
 </LinearLayout>

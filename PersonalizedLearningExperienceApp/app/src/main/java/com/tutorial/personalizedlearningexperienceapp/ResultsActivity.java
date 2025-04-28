@@ -1,24 +1,71 @@
 package com.tutorial.personalizedlearningexperienceapp;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.widget.Button;
+import android.widget.TextView;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
-public class ResultActivity extends AppCompatActivity {
+import java.util.ArrayList;
+import java.util.List;
+
+public class ResultsActivity extends AppCompatActivity {
+
+    private RecyclerView resultsRecyclerView;
+    private Button continueButton;
+    private TextView resultsTitle, scoreTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_result);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
+        setContentView(R.layout.activity_results);
+
+        // Initialize views
+        resultsTitle = findViewById(R.id.resultsTitle);
+        scoreTextView = findViewById(R.id.scoreTextView);
+        resultsRecyclerView = findViewById(R.id.resultsRecyclerView);
+        continueButton = findViewById(R.id.continueButton);
+
+        // Get data from intent
+        int score = getIntent().getIntExtra("score", 0);
+        int total = getIntent().getIntExtra("total", 1);
+        String topic = getIntent().getStringExtra("topic");
+
+        // Set title and score
+        resultsTitle.setText(topic + " Quiz Results");
+        scoreTextView.setText(String.format("You scored %d out of %d", score, total));
+
+        // Create detailed results list
+        List<ResultItem> resultItems = new ArrayList<>();
+        resultItems.add(new ResultItem("Total Questions", String.valueOf(total)));
+        resultItems.add(new ResultItem("Correct Answers", String.valueOf(score)));
+        resultItems.add(new ResultItem("Percentage", calculatePercentage(score, total) + "%"));
+        resultItems.add(new ResultItem("Performance", getPerformanceMessage(score, total)));
+
+        // Setup RecyclerView
+        resultsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        resultsRecyclerView.setAdapter(new ResultsAdapter(resultItems));
+
+        continueButton.setOnClickListener(v -> {
+            Intent intent = new Intent(ResultsActivity.this, DashboardActivity.class);
+            startActivity(intent);
+            finish();
         });
+    }
+
+    private String calculatePercentage(int score, int total) {
+        if (total == 0) return "0";
+        return String.format("%.1f", (score * 100.0) / total);
+    }
+
+    private String getPerformanceMessage(int score, int total) {
+        double percentage = (score * 100.0) / total;
+        if (percentage >= 80) return "Excellent!";
+        if (percentage >= 60) return "Good job!";
+        if (percentage >= 40) return "Not bad!";
+        return "Keep practicing!";
     }
 }
