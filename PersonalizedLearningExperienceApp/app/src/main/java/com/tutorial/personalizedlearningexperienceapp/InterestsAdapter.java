@@ -15,9 +15,15 @@ import java.util.List;
 public class InterestsAdapter extends RecyclerView.Adapter<InterestsAdapter.InterestViewHolder> {
 
     private List<Interest> interests;
+    private OnInterestClickListener listener;
 
-    public InterestsAdapter(List<Interest> interests) {
+    public interface OnInterestClickListener {
+        void onInterestClick(int position, boolean isSelected);
+    }
+
+    public InterestsAdapter(List<Interest> interests, OnInterestClickListener listener) {
         this.interests = interests;
+        this.listener = listener;
     }
 
     @NonNull
@@ -31,17 +37,13 @@ public class InterestsAdapter extends RecyclerView.Adapter<InterestsAdapter.Inte
     @Override
     public void onBindViewHolder(@NonNull InterestViewHolder holder, int position) {
         Interest interest = interests.get(position);
-        holder.interestTextView.setText(interest.getName());
-
-        if (interest.isSelected()) {
-            holder.cardView.setCardBackgroundColor(ContextCompat.getColor(holder.itemView.getContext(), R.color.purple_200));
-        } else {
-            holder.cardView.setCardBackgroundColor(ContextCompat.getColor(holder.itemView.getContext(), R.color.white));
-        }
+        holder.bind(interest);
 
         holder.itemView.setOnClickListener(v -> {
-            interest.setSelected(!interest.isSelected());
-            notifyItemChanged(position);
+            boolean newState = !interest.isSelected();
+            interest.setSelected(newState);
+            holder.bind(interest);
+            listener.onInterestClick(position, newState);
         });
     }
 
@@ -51,13 +53,24 @@ public class InterestsAdapter extends RecyclerView.Adapter<InterestsAdapter.Inte
     }
 
     static class InterestViewHolder extends RecyclerView.ViewHolder {
-        CardView cardView;
-        TextView interestTextView;
+        private final CardView cardView;
+        private final TextView interestTextView;
 
         public InterestViewHolder(@NonNull View itemView) {
             super(itemView);
             cardView = itemView.findViewById(R.id.cardView);
             interestTextView = itemView.findViewById(R.id.interestTextView);
+        }
+
+        public void bind(Interest interest) {
+            interestTextView.setText(interest.getName());
+            if (interest.isSelected()) {
+                cardView.setCardBackgroundColor(ContextCompat.getColor(itemView.getContext(), R.color.purple_500));
+                interestTextView.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.white));
+            } else {
+                cardView.setCardBackgroundColor(ContextCompat.getColor(itemView.getContext(), R.color.white));
+                interestTextView.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.black));
+            }
         }
     }
 }

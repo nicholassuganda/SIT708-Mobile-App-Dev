@@ -1,6 +1,7 @@
 package com.tutorial.personalizedlearningexperienceapp;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
@@ -14,6 +15,10 @@ public class LoginActivity extends AppCompatActivity {
     private EditText usernameEditText, passwordEditText;
     private Button loginButton;
     private TextView signupTextView;
+    private SharedPreferences mySharedPref;
+
+    private static final String PREFS_NAME = "MY_PREF";
+    private static final String NAME_KEY = "USERNAME";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,18 +30,23 @@ public class LoginActivity extends AppCompatActivity {
         loginButton = findViewById(R.id.loginButton);
         signupTextView = findViewById(R.id.signupTextView);
 
+        mySharedPref = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+
         loginButton.setOnClickListener(v -> {
-            String userName = usernameEditText.getText().toString().trim();
+            String username = usernameEditText.getText().toString().trim();
             String password = passwordEditText.getText().toString().trim();
 
-            if (userName.isEmpty() || password.isEmpty()) {
+            SharedPreferences.Editor editor = mySharedPref.edit();
+            editor.putString(NAME_KEY, usernameEditText.getText().toString());
+            editor.apply();
+
+            if (username.isEmpty() || password.isEmpty()) {
                 Toast.makeText(LoginActivity.this, "Please fill all fields", Toast.LENGTH_SHORT).show();
                 return;
             }
 
             // Simulate login
             Intent intent = new Intent(LoginActivity.this, DashboardActivity.class);
-            intent.putExtra("USER_NAME", userName);
             startActivity(intent);
             finish();
         });
