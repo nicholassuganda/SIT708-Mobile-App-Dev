@@ -32,11 +32,14 @@ public class LoginActivity extends AppCompatActivity {
 
         mySharedPref = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
 
+        SharedPreferences.Editor editor = mySharedPref.edit();
+        editor.clear();
+        editor.apply();
+
         loginButton.setOnClickListener(v -> {
             String username = usernameEditText.getText().toString().trim();
             String password = passwordEditText.getText().toString().trim();
 
-            SharedPreferences.Editor editor = mySharedPref.edit();
             editor.putString(NAME_KEY, usernameEditText.getText().toString());
             editor.apply();
 

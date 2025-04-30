@@ -1,6 +1,7 @@
 package com.tutorial.personalizedlearningexperienceapp;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -22,6 +23,9 @@ public class SignUpActivity extends AppCompatActivity {
     private EditText usernameEditText, emailEditText, confirmEmailEditText,
             passwordEditText, confirmPasswordEditText, phoneEditText;
     private Button signupButton;
+    private SharedPreferences mySharedPref;
+    private static final String PREFS_NAME = "MY_PREF";
+    private static final String NAME_KEY = "USERNAME";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +40,10 @@ public class SignUpActivity extends AppCompatActivity {
         phoneEditText = findViewById(R.id.phoneEditText);
         signupButton = findViewById(R.id.signupButton);
 
+        mySharedPref = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+
+        SharedPreferences.Editor editor = mySharedPref.edit();
+
         signupButton.setOnClickListener(v -> {
             String userName = usernameEditText.getText().toString().trim();
             String email = emailEditText.getText().toString().trim();
@@ -43,6 +51,9 @@ public class SignUpActivity extends AppCompatActivity {
             String password = passwordEditText.getText().toString().trim();
             String confirmPassword = confirmPasswordEditText.getText().toString().trim();
             String phone = phoneEditText.getText().toString().trim();
+
+            editor.putString(NAME_KEY, usernameEditText.getText().toString());
+            editor.apply();
 
             if (userName.isEmpty() || email.isEmpty() || confirmEmail.isEmpty() ||
                     password.isEmpty() || confirmPassword.isEmpty()) {
@@ -62,7 +73,6 @@ public class SignUpActivity extends AppCompatActivity {
 
             // Proceed to interests selection
             Intent intent = new Intent(SignUpActivity.this, InterestsActivity.class);
-            intent.putExtra("USER_NAME", userName);
             startActivity(intent);
             finish();
         });
