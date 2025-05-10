@@ -110,6 +110,14 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"/>
 
+        <!-- Add this after the location EditText -->
+        <Button
+            android:id="@+id/btn_get_location"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="GET CURRENT LOCATION"
+            android:layout_marginBottom="16dp"/>
+
         <Button
             android:id="@+id/btn_save"
             android:layout_width="match_parent"

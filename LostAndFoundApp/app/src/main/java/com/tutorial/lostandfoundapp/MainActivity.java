@@ -6,7 +6,7 @@ import android.widget.Button;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
-    Button btnAddNew, btnShowList;
+    Button btnAddNew, btnShowList, btnShowMap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -15,15 +15,18 @@ public class MainActivity extends AppCompatActivity {
 
         btnAddNew = findViewById(R.id.btnNewAdvert);
         btnShowList = findViewById(R.id.btnShowList);
+        btnShowMap = findViewById(R.id.btnShowMap);
 
         btnAddNew.setOnClickListener(v -> {
-            // Open CreateAdvertActivity
             startActivity(new Intent(MainActivity.this, CreateAdvertActivity.class));
         });
 
         btnShowList.setOnClickListener(v -> {
-            // Open ItemListActivity
             startActivity(new Intent(MainActivity.this, ItemsListActivity.class));
+        });
+
+        btnShowMap.setOnClickListener(v -> {
+            startActivity(new Intent(MainActivity.this, MapsActivity.class));
         });
     }
 }

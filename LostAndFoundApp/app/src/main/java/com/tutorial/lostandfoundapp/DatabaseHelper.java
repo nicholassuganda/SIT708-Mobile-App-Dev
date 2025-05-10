@@ -21,6 +21,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String KEY_DESCRIPTION = "description";
     private static final String KEY_DATE = "date";
     private static final String KEY_LOCATION = "location";
+    private static final String KEY_LATITUDE = "latitude";
+    private static final String KEY_LONGITUDE = "longitude";
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -35,7 +37,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 + KEY_PHONE + " TEXT,"
                 + KEY_DESCRIPTION + " TEXT,"
                 + KEY_DATE + " TEXT,"
-                + KEY_LOCATION + " TEXT" + ")";
+                + KEY_LOCATION + " TEXT,"
+                + KEY_LATITUDE + " REAL,"
+                + KEY_LONGITUDE + " REAL" + ")";
         db.execSQL(CREATE_ITEMS_TABLE);
     }
 
@@ -54,6 +58,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(KEY_DESCRIPTION, item.getDescription());
         values.put(KEY_DATE, item.getDate());
         values.put(KEY_LOCATION, item.getLocation());
+        values.put(KEY_LATITUDE, item.getLatitude());
+        values.put(KEY_LONGITUDE, item.getLongitude());
 
         db.insert(TABLE_NAME, null, values);
         db.close();
@@ -76,6 +82,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 item.setDescription(cursor.getString(4));
                 item.setDate(cursor.getString(5));
                 item.setLocation(cursor.getString(6));
+                item.setLatitude(cursor.getDouble(7));
+                item.setLongitude(cursor.getDouble(8));
 
                 itemList.add(item);
             } while (cursor.moveToNext());
